@@ -7,4 +7,5 @@ Object.assign(process.env, {
   LOG_LEVEL: 'trace',
   LOG_FILE: turboLogsPath,
   TURBO_TOKEN,
+  // BODY_LIMIT can be set by users to configure max upload size (default: 100MB)
 });

@@ -10,7 +10,7 @@ import getPort from 'get-port';
 import { createApp } from 'turborepo-remote-cache';
 
 import { pidFilePath } from '../shared.js';
-import { cleanup, fileLogger, ONE_HUNDRED_MB, pidFile, THIRTY_MINUTES } from './setup.js';
+import { cleanup, fileLogger, pidFile, THIRTY_MINUTES } from './setup.js';
 
 /** @type {ReturnType<typeof setTimeout>} */
 let exitTimer;
@@ -32,19 +32,30 @@ for (let [key, value] of storageEnv) {
  * Some of this file is token from
  * https://github.com/ducktors/turborepo-remote-cache/blob/main/src/index.ts
  */
-const fastifyApp = createApp({
-  /**
-   * Default is 50MB (for turborepo-remote-cache) and 1MB (for fastify)
-   * we have some very large assets.
-   */
-  bodyLimit: ONE_HUNDRED_MB,
-
+/** @type {any} */
+const createAppOptions = {
   /**
    * Allows us to debug, since, as a daemon, we won't have access to stdout/stderr
    * (default logger logs to stdout/stderr)
    */
   loggerInstance: fileLogger,
-});
+};
+
+// If BODY_LIMIT is set, parse and validate it
+if (process.env.BODY_LIMIT) {
+  const bodyLimit = parseInt(process.env.BODY_LIMIT, 10);
+
+  if (isNaN(bodyLimit) || bodyLimit <= 0) {
+    fileLogger.error(
+      `Invalid BODY_LIMIT value: ${process.env.BODY_LIMIT}. Must be a positive integer. Using default.`
+    );
+  } else {
+    fileLogger.info(`Using BODY_LIMIT: ${bodyLimit} bytes`);
+    createAppOptions.bodyLimit = bodyLimit;
+  }
+}
+
+const fastifyApp = createApp(createAppOptions);
 
 /**
  * Because we run as a daemon, there is a possibility that we accidentally create a zombie process.

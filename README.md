@@ -97,6 +97,40 @@ export async function wrappedTurbo(args) {
 }
 ```
 
+## Configuration
+
+### Body Limit
+
+By default, the daemon accepts cache artifacts up to 100 MB (104857600 bytes). If you have very large assets to cache, you can configure a custom body limit in two ways:
+
+**Option 1: Via API** (recommended)
+
+```js
+import { createDaemon } from 'turbo-daemon';
+
+const daemon = createDaemon({ 
+  bodyLimit: 200 * 1024 * 1024  // 200 MB
+});
+await daemon.ensureStarted();
+```
+
+**Option 2: Via Environment Variable**
+
+```bash
+export BODY_LIMIT=209715200  # 200 MB in bytes
+```
+
+Then use turbo-daemon as normal:
+
+```js
+import { createDaemon } from 'turbo-daemon';
+
+const daemon = createDaemon();
+await daemon.ensureStarted();
+```
+
+**Note:** If both are specified, the API option takes precedence.
+
 ## Debugging
 
 This project stores files in `<git root>/node_modules/.turbo-daemon/`
